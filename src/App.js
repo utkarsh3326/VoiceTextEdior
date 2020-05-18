@@ -105,6 +105,7 @@ class App extends React.Component {
     }
   }
 
+  // this function is for finding style type between bold , italic and underline Word
   changeStyle = (newmodel, i) => {
     if (this.props.transcript.indexOf("convert", i) != -1) {
       let indexOfConvert = this.props.transcript.indexOf("convert", i) + 7;
@@ -192,7 +193,7 @@ class App extends React.Component {
         <FroalaEditorView model={this.state.model} />
         <div>
           <button onClick={() => this.toSetmodelandtranscript(true)}>
-            Reset
+            Click For Add Text
           </button>
           <p>{this.props.transcript}</p>
         </div>
