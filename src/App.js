@@ -184,7 +184,7 @@ class App extends React.Component {
   render() {
     console.log("render is performed state model value", this.state.model);
     return (
-      <div className="App">
+      <div>
         <FroalaEditorComponent
           tag="textarea"
           model={this.state.model}
