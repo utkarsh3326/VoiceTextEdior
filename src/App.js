@@ -39,7 +39,6 @@ class App extends React.Component {
         this.setState({ model: newModel });
       }, 3000);
     }
-    await console.log("new text is added", this.state.model);
   }
   addStyleTagOnSpecifiedOccurence(
     NewchangeWord,
@@ -48,15 +47,16 @@ class App extends React.Component {
     occNo,
     indexOfConvert
   ) {
-    let t = 0;
+    let i = 0;
     NewchangeWord = NewchangeWord.trim();
     let reg = new RegExp(NewchangeWord, "g");
     newmodel = newmodel.replace(reg, function (match) {
-      t++;
-      return occNo === t ? newWord : match;
+      i++;
+      return occNo === i ? newWord : match;
     });
     this.changeStyle(newmodel, indexOfConvert);
   }
+
   addStyleTagOnText(
     bold,
     italic,
@@ -83,13 +83,13 @@ class App extends React.Component {
     if (NewchangeWord.length !== 0) {
       let newWord = "";
       let styleTag = "";
-      if (bold == 1) {
+      if (bold) {
         styleTag = "<b>";
         newWord = styleTag.concat(NewchangeWord, "</b>");
-      } else if (italic === 1) {
+      } else if (italic) {
         styleTag = "<i>";
         newWord = styleTag.concat(NewchangeWord, "</i>");
-      } else if (underline === 1) {
+      } else if (underline) {
         styleTag = "<u>";
         newWord = styleTag.concat(NewchangeWord, "</u>");
       }
@@ -107,12 +107,12 @@ class App extends React.Component {
   changeStyle = (newmodel, i) => {
     if (this.props.transcript.indexOf("convert", i) != -1) {
       let indexOfConvert = this.props.transcript.indexOf("convert", i) + 7;
-      let bold = 0;
-      let italic = 0;
-      let underline = 0;
+      let bold = false;
+      let italic = false;
+      let underline = false;
       let indexOfWordEnd = null;
       if (this.props.transcript.includes("in bold")) {
-        bold = 1;
+        bold = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in bold",
           indexOfConvert
@@ -123,11 +123,11 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          bold = 0;
+          bold = false;
         }
       }
-      if (this.props.transcript.includes("in Italic") && bold === 0) {
-        italic = 1;
+      if (this.props.transcript.includes("in Italic") && !bold) {
+        italic = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in Italic",
           indexOfConvert
@@ -139,15 +139,15 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          italic = 0;
+          italic = false;
         }
       }
       if (
         this.props.transcript.includes("in underline word") &&
-        bold === 0 &&
-        italic === 0
+        !bold &&
+        !italic
       ) {
-        underline = 1;
+        underline = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in underline word",
           indexOfConvert
@@ -159,10 +159,10 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          underline = 0;
+          underline = false;
         }
       }
-      if (bold === 1 || italic === 1 || underline === 1) {
+      if (bold || italic || underline) {
         this.addStyleTagOnText(
           bold,
           italic,
@@ -175,14 +175,12 @@ class App extends React.Component {
         this.changeStyle(newmodel, indexOfConvert);
       }
     } else {
-      console.log("No more convert , newmodel value", newmodel);
       this.setState({ model: newmodel });
       this.toSetmodelandtranscript(false);
     }
   };
 
   render() {
-    console.log("render is performed state model value", this.state.model);
     return (
       <div>
         <FroalaEditorComponent
