@@ -20,9 +20,7 @@ class App extends React.Component {
     this.handleModelChange = this.handleModelChange.bind(this);
     this.toSetmodelandtranscript = this.toSetmodelandtranscript.bind(this);
     this.state = {
-      model: "",
-      styleString: "",
-      convertIndex: 0,
+      model: "<p></p>",
     };
   }
 
@@ -42,6 +40,23 @@ class App extends React.Component {
       }, 3000);
     }
   }
+  addStyleTagOnSpecifiedOccurence(
+    NewchangeWord,
+    newmodel,
+    newWord,
+    occNo,
+    indexOfConvert
+  ) {
+    let i = 0;
+    NewchangeWord = NewchangeWord.trim();
+    let reg = new RegExp(NewchangeWord, "g");
+    newmodel = newmodel.replace(reg, function (match) {
+      i++;
+      return occNo === i ? newWord : match;
+    });
+    this.changeStyle(newmodel, indexOfConvert);
+  }
+
   addStyleTagOnText(
     bold,
     italic,
@@ -61,59 +76,43 @@ class App extends React.Component {
     let NewchangeWord = changeWord;
     if (Object.keys(occurenceOfWord).includes(occurence)) {
       occNo = occurenceOfWord[occurence];
-
       let startIndex = occurence.length + 1;
       NewchangeWord = changeWord.substr(startIndex);
     }
 
-    if (NewchangeWord.length != 0) {
-      if (bold == 1) {
-        let b = "<b>";
-        let newWord = b.concat(NewchangeWord, "</b>");
-        let t = 0;
-        NewchangeWord = NewchangeWord.trim();
-        let reg = new RegExp(NewchangeWord, "g");
-        newmodel = newmodel.replace(reg, function (match) {
-          t++;
-          return occNo === t ? newWord : match;
-        });
-        this.changeStyle(newmodel, indexOfConvert);
-      } else if (italic == 1) {
-        let b = "<i>";
-        let newWord = b.concat(NewchangeWord, "</i>");
-        let t = 0;
-        NewchangeWord = NewchangeWord.trim();
-        let reg = new RegExp(NewchangeWord, "g");
-        newmodel = newmodel.replace(reg, function (match) {
-          t++;
-          return occNo === t ? newWord : match;
-        });
-        this.changeStyle(newmodel, indexOfConvert);
-      } else if (underline == 1) {
-        let b = "<u>";
-        let newWord = b.concat(NewchangeWord, "</u>");
-        let t = 0;
-        NewchangeWord = NewchangeWord.trim();
-        let reg = new RegExp(NewchangeWord, "g");
-        newmodel = newmodel.replace(reg, function (match) {
-          t++;
-          return occNo === t ? newWord : match;
-        });
-
-        this.changeStyle(newmodel, indexOfConvert);
+    if (NewchangeWord.length !== 0) {
+      let newWord = "";
+      let styleTag = "";
+      if (bold) {
+        styleTag = "<b>";
+        newWord = styleTag.concat(NewchangeWord, "</b>");
+      } else if (italic) {
+        styleTag = "<i>";
+        newWord = styleTag.concat(NewchangeWord, "</i>");
+      } else if (underline) {
+        styleTag = "<u>";
+        newWord = styleTag.concat(NewchangeWord, "</u>");
       }
+      this.addStyleTagOnSpecifiedOccurence(
+        NewchangeWord,
+        newmodel,
+        newWord,
+        occNo,
+        indexOfConvert
+      );
     }
   }
 
+  // this function is for finding style type between bold , italic and underline Word
   changeStyle = (newmodel, i) => {
     if (this.props.transcript.indexOf("convert", i) != -1) {
       let indexOfConvert = this.props.transcript.indexOf("convert", i) + 7;
-      let bold = 0;
-      let italic = 0;
-      let underline = 0;
+      let bold = false;
+      let italic = false;
+      let underline = false;
       let indexOfWordEnd = null;
       if (this.props.transcript.includes("in bold")) {
-        bold = 1;
+        bold = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in bold",
           indexOfConvert
@@ -124,11 +123,11 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          bold = 0;
+          bold = false;
         }
       }
-      if (this.props.transcript.includes("in Italic") && bold == 0) {
-        italic = 1;
+      if (this.props.transcript.includes("in Italic") && !bold) {
+        italic = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in Italic",
           indexOfConvert
@@ -140,15 +139,15 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          italic = 0;
+          italic = false;
         }
       }
       if (
         this.props.transcript.includes("in underline word") &&
-        bold == 0 &&
-        italic == 0
+        !bold &&
+        !italic
       ) {
-        underline = 1;
+        underline = true;
         indexOfWordEnd = this.props.transcript.indexOf(
           "in underline word",
           indexOfConvert
@@ -160,10 +159,10 @@ class App extends React.Component {
             .includes("convert") ||
           indexOfWordEnd == -1
         ) {
-          underline = 0;
+          underline = false;
         }
       }
-      if (bold == 1 || italic == 1 || underline == 1) {
+      if (bold || italic || underline) {
         this.addStyleTagOnText(
           bold,
           italic,
@@ -183,7 +182,7 @@ class App extends React.Component {
 
   render() {
     return (
-      <div className="App">
+      <div>
         <FroalaEditorComponent
           tag="textarea"
           model={this.state.model}
@@ -192,7 +191,7 @@ class App extends React.Component {
         <FroalaEditorView model={this.state.model} />
         <div>
           <button onClick={() => this.toSetmodelandtranscript(true)}>
-            Reset
+            Add Text
           </button>
           <p>{this.props.transcript}</p>
         </div>
